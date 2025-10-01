@@ -1,0 +1,148 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>TK – Results</title>
+  <style>
+:root{
+  --bg:#eaf4ff;
+  --card:#ffffff;
+  --ink:#0f172a;
+  --muted:#5b6478;
+  --accent:#2563eb;
+  --accent-weak:#dbeafe;
+  --shadow:0 10px 25px rgba(2,6,23,.06);
+  --radius:16px;
+}
+*{box-sizing:border-box}
+html,body{margin:0;padding:0}
+body{font-family:Inter, ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, 'Helvetica Neue', Arial;
+  color:var(--ink);background:linear-gradient(180deg,var(--bg),#f7fbff 60%);}
+.container{max-width:1100px;margin:32px auto;padding:0 20px}
+.header{display:flex;align-items:center;justify-content:space-between;margin-bottom:24px;}
+.brand{display:flex;align-items:center;gap:12px;font-weight:800;font-size:20px}
+.brand .logo{width:36px;height:36px;border-radius:10px;background:var(--accent);
+  box-shadow:inset 0 -10px 20px rgba(255,255,255,.25);display:grid;place-items:center;color:white;font-weight:900;}
+.subtle{color:var(--muted)}
+.grid{display:grid;gap:16px;grid-template-columns: repeat(auto-fit,minmax(240px,1fr));}
+.card{background:var(--card);border-radius:var(--radius);box-shadow:var(--shadow);padding:18px;border:1px solid #eef2ff;transition:transform .08s ease;}
+.card:hover{transform:translateY(-2px)}
+.card h3{margin:4px 0 4px;font-size:18px}
+.card p{margin:0;color:var(--muted);font-size:14px}
+.kicker{font-weight:800;letter-spacing:.02em;text-transform:uppercase;color:#334155;margin:6px 0 10px;font-size:14px}
+.table{width:100%;border-collapse:separate;border-spacing:0 8px;margin-top:10px}
+.table th,.table td{padding:10px 12px;background:#f8faff}
+.table th{color:#334155;font-size:12px;letter-spacing:.02em;text-transform:uppercase;background:#eef2ff}
+.charts{display:grid;gap:16px;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));}
+canvas{width:100%;height:240px}
+.backlink{display:inline-flex;align-items:center;gap:8px;color:var(--accent);text-decoration:none;font-weight:700}
+.login{max-width:560px;margin:12px 0 20px;display:none}
+.btn{display:inline-flex;align-items:center;gap:8px;background:var(--accent);color:#fff;border:none;border-radius:10px;
+  padding:10px 14px;font-weight:700;cursor:pointer;box-shadow:var(--shadow);}
+.input{padding:10px 12px;border-radius:10px;border:1px solid #dbeafe;width:220px;margin-right:8px}
+</style>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <a href="index.html" class="backlink">← Back to class</a>
+      <div class="brand"><div class="logo">📈</div>TK's Progress</div>
+    </div>
+
+    <div id="login" class="card login" style="display:block;">
+      <h3 style="margin-top:0;">Enter your password</h3>
+      <input type="password" id="pw" class="input" placeholder="Password">
+      <button class="btn" onclick="checkPassword()">Unlock</button>
+      <div id="err" class="subtle" style="color:#b91c1c;margin-top:8px;"></div>
+    </div>
+
+    <div id="content" style="display:none;">
+      <div class="card">
+        <h2 style="margin:0;">Overview</h2>
+        <p class="subtle" style="margin-top:6px;">Live from Google Sheets tab: <strong>TK</strong></p>
+      </div>
+
+      <div class="kicker">All Results (table)</div>
+      <div class="card">
+        <table class="table">
+          <thead><tr id="headers"></tr></thead>
+          <tbody id="rows"></tbody>
+        </table>
+      </div>
+
+      <div class="kicker">Progress Charts</div>
+      <div id="charts" class="charts"></div>
+    </div>
+  </div>
+
+<script>
+  const PUBLISHED_BASE = "https://docs.google.com/spreadsheets/d/e/2PACX-1vTCUTXjOdP3XSxBsd0JLbK1PMEodb4Kjd4bOY-MV5F7IF8nFm3N8_ciaS8vcuRVLlw5_PBQwpxChb3Q/pub?output=csv";
+  const TAB = "TK";
+  const PASSWORD_HASH = "52aead9099dbe7fb9d5fa8eb9c86c584";
+  const SHEET_URL = PUBLISHED_BASE + "&sheet=" + encodeURIComponent(TAB) + "&single=true";
+
+  const stripQ = s => (s||"").replace(/^\"|\"$/g,"").replace(/^"|"$/g,"").trim();
+  function parseCSV(text){
+    return text.trim().split(/\r?\n/).map(r => r.split(","));
+  }
+
+  async function md5(message) {
+    const msgUint8 = new TextEncoder().encode(message);
+    const hashBuffer = await crypto.subtle.digest("MD5", msgUint8);
+    const hashArray = Array.from(new Uint8Array(hashBuffer));
+    return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+  }
+
+  async function checkPassword() {
+    const input = document.getElementById("pw").value;
+    const hash = await md5(input);
+    if (hash === PASSWORD_HASH) {
+      document.getElementById("login").style.display = "none";
+      document.getElementById("content").style.display = "block";
+      loadData();
+    } else {
+      document.getElementById("err").textContent = "Incorrect password";
+    }
+  }
+
+  async function loadData() {
+    const url = SHEET_URL + "&t=" + Date.now();
+    const res = await fetch(url);
+    const text = await res.text();
+    const rows = parseCSV(text);
+    if(!rows.length) return;
+    const headers = rows[0].map(stripQ);
+    const headerRow = document.getElementById("headers");
+    headers.forEach(h=>{ const th=document.createElement("th"); th.textContent=h||"Metric / Date"; headerRow.appendChild(th); });
+
+    const tbody = document.getElementById("rows");
+    rows.slice(1).forEach(row=>{
+      if(row.every(c => stripQ(c)==="")) return;
+      const tr=document.createElement("tr");
+      row.forEach(cell=>{ const td=document.createElement("td"); td.textContent=stripQ(cell); tr.appendChild(td); });
+      tbody.appendChild(tr);
+    });
+
+    const dates = headers.slice(1);
+    const chartsDiv = document.getElementById("charts");
+    rows.slice(1).forEach(row=>{
+      const metric = stripQ(row[0]); if(!metric) return;
+      const values = row.slice(1).map(v=>{ const n=parseFloat(stripQ(v)); return isNaN(n)? null : n; });
+
+      const card=document.createElement("div"); card.className="card";
+      const h=document.createElement("h3"); h.textContent=metric; card.appendChild(h);
+      const canvas=document.createElement("canvas"); card.appendChild(canvas);
+      chartsDiv.appendChild(card);
+
+      new Chart(canvas.getContext("2d"), {
+        type:"line",
+        data:{ labels:dates, datasets:[{ label:metric, data:values, fill:true, tension:.35 }] },
+        options:{ responsive:true, plugins:{legend:{display:false}}, scales:{y:{beginAtZero:true}} }
+      });
+    });
+  }
+</script>
+</body>
+</html>
