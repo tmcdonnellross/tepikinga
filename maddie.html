@@ -85,9 +85,9 @@ canvas{width:100%;height:240px}
   </div>
 
 <script>
-  const PUBLISHED_BASE = "https://docs.google.com/spreadsheets/d/e/2PACX-1vTCUTXjOdP3XSxBsd0JLbK1PMEodb4Kjd4bOY-MV5F7IF8nFm3N8_ciaS8vcuRVLlw5_PBQwpxChb3Q/pub?output=csv";
+  const GVIZ_BASE = "https://docs.google.com/spreadsheets/d/e/2PACX-1vTCUTXjOdP3XSxBsd0JLbK1PMEodb4Kjd4bOY-MV5F7IF8nFm3N8_ciaS8vcuRVLlw5_PBQwpxChb3Q/gviz/tq?tqx=out:csv";
   const TAB = "Maddie";
-  const SHEET_URL = PUBLISHED_BASE + "&sheet=" + encodeURIComponent(TAB) + "&single=true";
+  const SHEET_URL = GVIZ_BASE + "&sheet=" + encodeURIComponent(TAB);
 
   const stripQ = s => (s||"").replace(/^\"|\"$/g,"").replace(/^"|"$/g,"").trim();
   function parseCSV(text){ return text.trim().split(/\r?\n/).map(r => r.split(",")); }
