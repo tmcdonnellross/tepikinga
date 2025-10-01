@@ -43,6 +43,7 @@ canvas{width:100%;height:240px}
 .btn{display:inline-flex;align-items:center;gap:8px;background:var(--accent);color:#fff;border:none;border-radius:10px;
   padding:10px 14px;font-weight:700;cursor:pointer;box-shadow:var(--shadow);}
 .input{padding:10px 12px;border-radius:10px;border:1px solid var(--table-grid);width:220px;margin-right:8px}
+.summary{background:var(--accent-weak);border:1px solid var(--table-grid);padding:14px;border-radius:12px}
 </style>
 </head>
 <body>
@@ -63,20 +64,17 @@ canvas{width:100%;height:240px}
     const emojis = ["🧠","📘","📝","🎯","📈","🧮","🧪","🧩","🔬","📚","🧑‍🏫","🏅","💡","⭐️","🎓","🗂️","🗒️","📊","🧭","🚀"];
     function pickEmoji() { return emojis[Math.floor(Math.random()*emojis.length)]; }
     const cards = document.getElementById('cards');
-    students.forEach(name => {
+    students.forEach(function(name) {
       const a = document.createElement('a');
       a.className = 'card';
       a.href = name.toLowerCase() + '.html';
       a.style.textDecoration = 'none';
       a.style.color = 'inherit';
-      a.innerHTML = `
-        <div style="display:flex;align-items:center;gap:12px;">
-          <div style="background:var(--accent-weak);border:1px solid var(--table-grid);width:42px;height:42px;border-radius:12px;display:grid;place-items:center;">${pickEmoji()}</div>
-          <div>
-            <h3>${name}</h3>
-            <p>View table and charts</p>
-          </div>
-        </div>`;
+      a.innerHTML = ''
+        + '<div style="display:flex;align-items:center;gap:12px;">'
+        +   '<div style="background:var(--accent-weak);border:1px solid var(--table-grid);width:42px;height:42px;border-radius:12px;display:grid;place-items:center;">' + pickEmoji() + '</div>'
+        +   '<div><h3>' + name + '</h3><p>View table and charts</p></div>'
+        + '</div>';
       cards.appendChild(a);
     });
   </script>
