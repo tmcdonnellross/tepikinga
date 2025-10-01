@@ -85,9 +85,9 @@ canvas{width:100%;height:240px}
   </div>
 
 <script>
-  const PUBLISHED_CSV = "https://docs.google.com/spreadsheets/d/e/2PACX-1vTCUTXjOdP3XSxBsd0JLbK1PMEodb4Kjd4bOY-MV5F7IF8nFm3N8_ciaS8vcuRVLlw5_PBQwpxChb3Q/pub?output=csv";
+  const GVIZ_BASE = "https://docs.google.com/spreadsheets/d/1dQ6IBSgu54prrWeXDYqsH382GIZ-MwHkq8DRi1zXGeQ/gviz/tq?tqx=out:csv";
   const TAB = "Jacob";
-  const SHEET_URL = PUBLISHED_CSV + "&single=true&sheet=" + encodeURIComponent(TAB) + "&t=" + Date.now();
+  const SHEET_URL = GVIZ_BASE + "&sheet=" + encodeURIComponent(TAB) + "&t=" + Date.now();
 
   const stripQ = s => (s||"").replace(/^\"|\"$/g,"").replace(/^"|"$/g,"").trim();
   function parseCSV(text){ return text.trim().split(/\r?\n/).map(r => r.split(",")); }
@@ -109,7 +109,6 @@ canvas{width:100%;height:240px}
     try {
       const res = await fetch('passwords.json?cache=' + Date.now());
       const map = await res.json();
-      // Case-insensitive lookup (fix for tabs like DEMO vs Demo)
       const expected = (map[TAB] || map[TAB.toLowerCase()] || map[TAB.toUpperCase()] || '').trim();
       if (expected && input === expected) {
         document.getElementById('login').style.display = 'none';
@@ -134,9 +133,8 @@ canvas{width:100%;height:240px}
   async function loadData() {
     const res = await fetch(SHEET_URL);
     const text = await res.text();
-    // Basic check: if response starts with '<!DOCTYPE', we fetched an HTML error
     if (/^\s*<!DOCTYPE/i.test(text)) {
-      document.getElementById('rows').innerHTML = '<tr><td>Could not load CSV. Is the sheet published to web and the tab named exactly: ' + TAB + ' ?</td></tr>';
+      document.getElementById('rows').innerHTML = '<tr><td>Could not load CSV via GVIZ. Ensure the Sheet is "Anyone with the link" (Viewer) and the tab name matches exactly: ' + TAB + '.</td></tr>';
       return;
     }
     const rows = parseCSV(text);
