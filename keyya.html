@@ -6,11 +6,11 @@
   <title>Keyya – Results</title>
   <style>
 :root{
-  --bg:#eaf4ff;
+  --bg:#f3e8ff;
   --card:#ffffff;
   --ink:#0f172a;
   --muted:#5b6478;
-  --accent:#2563eb;
+  --accent:#7c3aed;
   --accent-weak:#dbeafe;
   --shadow:0 10px 25px rgba(2,6,23,.06);
   --radius:16px;
@@ -80,7 +80,7 @@ canvas{width:100%;height:240px}
 <script>
   const PUBLISHED_BASE = "https://docs.google.com/spreadsheets/d/e/2PACX-1vTCUTXjOdP3XSxBsd0JLbK1PMEodb4Kjd4bOY-MV5F7IF8nFm3N8_ciaS8vcuRVLlw5_PBQwpxChb3Q/pub?output=csv";
   const TAB = "Keyya";
-  const PASSWORD_SHA256 = "dbcdf9b2a3dab9e032884c48472b9c670a02fc34fd9006c4b68c415d3b371a87";
+  const PASSWORD_SHA256 = "ed216960fd295bf3733e4dacba710ed3dd3ea8663baa67a05049e9b0e78deb32";
   const SHEET_URL = PUBLISHED_BASE + "&sheet=" + encodeURIComponent(TAB) + "&single=true";
 
   const stripQ = s => (s||"").replace(/^\"|\"$/g,"").replace(/^"|"$/g,"").trim();

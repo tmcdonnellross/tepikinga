@@ -6,11 +6,11 @@
   <title>Drue – Results</title>
   <style>
 :root{
-  --bg:#eaf4ff;
+  --bg:#ffe8f2;
   --card:#ffffff;
   --ink:#0f172a;
   --muted:#5b6478;
-  --accent:#2563eb;
+  --accent:#ec4899;
   --accent-weak:#dbeafe;
   --shadow:0 10px 25px rgba(2,6,23,.06);
   --radius:16px;
@@ -80,7 +80,7 @@ canvas{width:100%;height:240px}
 <script>
   const PUBLISHED_BASE = "https://docs.google.com/spreadsheets/d/e/2PACX-1vTCUTXjOdP3XSxBsd0JLbK1PMEodb4Kjd4bOY-MV5F7IF8nFm3N8_ciaS8vcuRVLlw5_PBQwpxChb3Q/pub?output=csv";
   const TAB = "Drue";
-  const PASSWORD_SHA256 = "b3ec3e1aea0854e9b8a18ddaeed1323815fcab824031bbd233434ee9f2c24b13";
+  const PASSWORD_SHA256 = "2f8c52ca5f45e35928f5ac4baa765cf3bed92e6c8ce6bd494c700f43d035b5d6";
   const SHEET_URL = PUBLISHED_BASE + "&sheet=" + encodeURIComponent(TAB) + "&single=true";
 
   const stripQ = s => (s||"").replace(/^\"|\"$/g,"").replace(/^"|"$/g,"").trim();

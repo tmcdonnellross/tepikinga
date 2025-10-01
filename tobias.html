@@ -6,11 +6,11 @@
   <title>Tobias – Results</title>
   <style>
 :root{
-  --bg:#eaf4ff;
+  --bg:#fff7da;
   --card:#ffffff;
   --ink:#0f172a;
   --muted:#5b6478;
-  --accent:#2563eb;
+  --accent:#f59e0b;
   --accent-weak:#dbeafe;
   --shadow:0 10px 25px rgba(2,6,23,.06);
   --radius:16px;
@@ -80,7 +80,7 @@ canvas{width:100%;height:240px}
 <script>
   const PUBLISHED_BASE = "https://docs.google.com/spreadsheets/d/e/2PACX-1vTCUTXjOdP3XSxBsd0JLbK1PMEodb4Kjd4bOY-MV5F7IF8nFm3N8_ciaS8vcuRVLlw5_PBQwpxChb3Q/pub?output=csv";
   const TAB = "Tobias";
-  const PASSWORD_SHA256 = "a311d12a338d4b2be6382d592819e2b28345e1ddbe51868079deb0247731946c";
+  const PASSWORD_SHA256 = "344de20c813e993d1d0abcbd3d616227aba4522a1a735d5181d6eb8a73a47ecd";
   const SHEET_URL = PUBLISHED_BASE + "&sheet=" + encodeURIComponent(TAB) + "&single=true";
 
   const stripQ = s => (s||"").replace(/^\"|\"$/g,"").replace(/^"|"$/g,"").trim();

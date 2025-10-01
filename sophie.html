@@ -6,11 +6,11 @@
   <title>Sophie – Results</title>
   <style>
 :root{
-  --bg:#eaf4ff;
+  --bg:#f3e8ff;
   --card:#ffffff;
   --ink:#0f172a;
   --muted:#5b6478;
-  --accent:#2563eb;
+  --accent:#7c3aed;
   --accent-weak:#dbeafe;
   --shadow:0 10px 25px rgba(2,6,23,.06);
   --radius:16px;
@@ -80,7 +80,7 @@ canvas{width:100%;height:240px}
 <script>
   const PUBLISHED_BASE = "https://docs.google.com/spreadsheets/d/e/2PACX-1vTCUTXjOdP3XSxBsd0JLbK1PMEodb4Kjd4bOY-MV5F7IF8nFm3N8_ciaS8vcuRVLlw5_PBQwpxChb3Q/pub?output=csv";
   const TAB = "Sophie";
-  const PASSWORD_SHA256 = "4c15630def678006439047d69ed7d4742b54d7f29b6b0e82df99bb71c0274b45";
+  const PASSWORD_SHA256 = "7d95c64892fe7e6397ab46c4314b284e551a89293e2669dad57d99fca83d2679";
   const SHEET_URL = PUBLISHED_BASE + "&sheet=" + encodeURIComponent(TAB) + "&single=true";
 
   const stripQ = s => (s||"").replace(/^\"|\"$/g,"").replace(/^"|"$/g,"").trim();

@@ -6,11 +6,11 @@
   <title>DEMO – Results</title>
   <style>
 :root{
-  --bg:#eaf4ff;
+  --bg:#e8fbef;
   --card:#ffffff;
   --ink:#0f172a;
   --muted:#5b6478;
-  --accent:#2563eb;
+  --accent:#16a34a;
   --accent-weak:#dbeafe;
   --shadow:0 10px 25px rgba(2,6,23,.06);
   --radius:16px;
@@ -80,7 +80,7 @@ canvas{width:100%;height:240px}
 <script>
   const PUBLISHED_BASE = "https://docs.google.com/spreadsheets/d/e/2PACX-1vTCUTXjOdP3XSxBsd0JLbK1PMEodb4Kjd4bOY-MV5F7IF8nFm3N8_ciaS8vcuRVLlw5_PBQwpxChb3Q/pub?output=csv";
   const TAB = "DEMO";
-  const PASSWORD_SHA256 = "07192c4666f27d4f296de6f516e4d0f691551eeb34a6a89eadb720d0063944a8";
+  const PASSWORD_SHA256 = "42ba721fd6bf0b46eb41148dba9a1089c4b3f2f0ff3a94ba82f075af3cf50b82";
   const SHEET_URL = PUBLISHED_BASE + "&sheet=" + encodeURIComponent(TAB) + "&single=true";
 
   const stripQ = s => (s||"").replace(/^\"|\"$/g,"").replace(/^"|"$/g,"").trim();
