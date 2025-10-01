@@ -80,7 +80,7 @@ canvas{width:100%;height:240px}
 <script>
   const PUBLISHED_BASE = "https://docs.google.com/spreadsheets/d/e/2PACX-1vTCUTXjOdP3XSxBsd0JLbK1PMEodb4Kjd4bOY-MV5F7IF8nFm3N8_ciaS8vcuRVLlw5_PBQwpxChb3Q/pub?output=csv";
   const TAB = "Logan";
-  const PASSWORD_HASH = "82385a5d4acb358c6944b12e1b73c62e";
+  const PASSWORD_SHA256 = "4af24b3e37219d158ee50f9220803eef6f00f5baa39870fd45cd8dda9cc08251";
   const SHEET_URL = PUBLISHED_BASE + "&sheet=" + encodeURIComponent(TAB) + "&single=true";
 
   const stripQ = s => (s||"").replace(/^\"|\"$/g,"").replace(/^"|"$/g,"").trim();
@@ -88,17 +88,17 @@ canvas{width:100%;height:240px}
     return text.trim().split(/\r?\n/).map(r => r.split(","));
   }
 
-  async function md5(message) {
+  async function sha256Hex(message) {
     const msgUint8 = new TextEncoder().encode(message);
-    const hashBuffer = await crypto.subtle.digest("MD5", msgUint8);
+    const hashBuffer = await crypto.subtle.digest("SHA-256", msgUint8);
     const hashArray = Array.from(new Uint8Array(hashBuffer));
     return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
   }
 
   async function checkPassword() {
     const input = document.getElementById("pw").value;
-    const hash = await md5(input);
-    if (hash === PASSWORD_HASH) {
+    const hash = await sha256Hex(input);
+    if (hash === PASSWORD_SHA256) {
       document.getElementById("login").style.display = "none";
       document.getElementById("content").style.display = "block";
       loadData();
