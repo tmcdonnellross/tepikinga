@@ -11,9 +11,11 @@
   --ink:#0f172a;
   --muted:#5b6478;
   --accent:#ec4899;
-  --accent-weak:#dbeafe;
+  --accent-weak:#ffe4ef;
   --shadow:0 10px 25px rgba(2,6,23,.06);
   --radius:16px;
+  --table-row:#fcfdff;
+  --table-grid:#eef2ff;
 }
 *{box-sizing:border-box}
 html,body{margin:0;padding:0}
@@ -26,21 +28,21 @@ body{font-family:Inter, ui-sans-serif, system-ui, -apple-system, Segoe UI, Robot
   box-shadow:inset 0 -10px 20px rgba(255,255,255,.25);display:grid;place-items:center;color:white;font-weight:900;}
 .subtle{color:var(--muted)}
 .grid{display:grid;gap:16px;grid-template-columns: repeat(auto-fit,minmax(240px,1fr));}
-.card{background:var(--card);border-radius:var(--radius);box-shadow:var(--shadow);padding:18px;border:1px solid #eef2ff;transition:transform .08s ease;}
+.card{background:var(--card);border-radius:var(--radius);box-shadow:var(--shadow);padding:18px;border:1px solid var(--table-grid);transition:transform .08s ease;}
 .card:hover{transform:translateY(-2px)}
 .card h3{margin:4px 0 4px;font-size:18px}
 .card p{margin:0;color:var(--muted);font-size:14px}
 .kicker{font-weight:800;letter-spacing:.02em;text-transform:uppercase;color:#334155;margin:6px 0 10px;font-size:14px}
 .table{width:100%;border-collapse:separate;border-spacing:0 8px;margin-top:10px}
-.table th,.table td{padding:10px 12px;background:#f8faff}
-.table th{color:#334155;font-size:12px;letter-spacing:.02em;text-transform:uppercase;background:#eef2ff}
+.table th,.table td{padding:10px 12px;background:var(--table-row);border:1px solid var(--table-grid)}
+.table th{color:#334155;font-size:12px;letter-spacing:.02em;text-transform:uppercase;background:var(--accent-weak)}
 .charts{display:grid;gap:16px;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));}
 canvas{width:100%;height:240px}
 .backlink{display:inline-flex;align-items:center;gap:8px;color:var(--accent);text-decoration:none;font-weight:700}
 .login{max-width:560px;margin:12px 0 20px;display:none}
 .btn{display:inline-flex;align-items:center;gap:8px;background:var(--accent);color:#fff;border:none;border-radius:10px;
   padding:10px 14px;font-weight:700;cursor:pointer;box-shadow:var(--shadow);}
-.input{padding:10px 12px;border-radius:10px;border:1px solid #dbeafe;width:220px;margin-right:8px}
+.input{padding:10px 12px;border-radius:10px;border:1px solid var(--table-grid);width:220px;margin-right:8px}
 </style>
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
@@ -80,12 +82,25 @@ canvas{width:100%;height:240px}
 <script>
   const PUBLISHED_BASE = "https://docs.google.com/spreadsheets/d/e/2PACX-1vTCUTXjOdP3XSxBsd0JLbK1PMEodb4Kjd4bOY-MV5F7IF8nFm3N8_ciaS8vcuRVLlw5_PBQwpxChb3Q/pub?output=csv";
   const TAB = "Kyla";
-  const PASSWORD_SHA256 = "51df4ad534c915b4d0c01d9e227adfe038bee894c7a31a744263d243acaff9ab";
+  const PASSWORD_SHA256 = "8d447435b2152e4dba64769eec56835b0991b9b81ddcb5d163b4a9eb12a89eb3";
   const SHEET_URL = PUBLISHED_BASE + "&sheet=" + encodeURIComponent(TAB) + "&single=true";
 
   const stripQ = s => (s||"").replace(/^\"|\"$/g,"").replace(/^"|"$/g,"").trim();
   function parseCSV(text){
     return text.trim().split(/\r?\n/).map(r => r.split(","));
+  }
+
+  function hexToRgba(hex, alpha) {
+    const h = hex.replace('#','');
+    const r = parseInt(h.substring(0,2),16);
+    const g = parseInt(h.substring(2,4),16);
+    const b = parseInt(h.substring(4,6),16);
+    return `rgba(${r}, ${g}, ${b}, ${alpha})`;
+  }
+
+  function getAccent() {
+    const s = getComputedStyle(document.documentElement).getPropertyValue('--accent').trim();
+    return s || '#2563eb';
   }
 
   async function sha256Hex(message) {
@@ -127,6 +142,9 @@ canvas{width:100%;height:240px}
 
     const dates = headers.slice(1);
     const chartsDiv = document.getElementById("charts");
+    const accent = getAccent();
+    const fill = hexToRgba(accent, 0.18);
+
     rows.slice(1).forEach(row=>{
       const metric = stripQ(row[0]); if(!metric) return;
       const values = row.slice(1).map(v=>{ const n=parseFloat(stripQ(v)); return isNaN(n)? null : n; });
@@ -138,8 +156,15 @@ canvas{width:100%;height:240px}
 
       new Chart(canvas.getContext("2d"), {
         type:"line",
-        data:{ labels:dates, datasets:[{ label:metric, data:values, fill:true, tension:.35 }] },
-        options:{ responsive:true, plugins:{legend:{display:false}}, scales:{y:{beginAtZero:true}} }
+        data:{ labels:dates, datasets:[{ label:metric, data:values, borderColor: accent, backgroundColor: fill, fill:true, tension:.35 }] },
+        options:{
+          responsive:true,
+          plugins:{legend:{display:false}},
+          scales:{
+            x:{ grid:{ color: hexToRgba(accent, 0.09) } },
+            y:{ beginAtZero:true, grid:{ color: hexToRgba(accent, 0.09) } }
+          }
+        }
       });
     });
   }
