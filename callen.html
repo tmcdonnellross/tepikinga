@@ -85,9 +85,9 @@ canvas{width:100%;height:240px}
   </div>
 
 <script>
-  const GVIZ_BASE = "https://docs.google.com/spreadsheets/d/e/2PACX-1vTCUTXjOdP3XSxBsd0JLbK1PMEodb4Kjd4bOY-MV5F7IF8nFm3N8_ciaS8vcuRVLlw5_PBQwpxChb3Q/gviz/tq?tqx=out:csv";
+  const PUBLISHED_CSV = "https://docs.google.com/spreadsheets/d/e/2PACX-1vTCUTXjOdP3XSxBsd0JLbK1PMEodb4Kjd4bOY-MV5F7IF8nFm3N8_ciaS8vcuRVLlw5_PBQwpxChb3Q/pub?output=csv";
   const TAB = "Callen";
-  const SHEET_URL = GVIZ_BASE + "&sheet=" + encodeURIComponent(TAB);
+  const SHEET_URL = PUBLISHED_CSV + "&single=true&sheet=" + encodeURIComponent(TAB) + "&t=" + Date.now();
 
   const stripQ = s => (s||"").replace(/^\"|\"$/g,"").replace(/^"|"$/g,"").trim();
   function parseCSV(text){ return text.trim().split(/\r?\n/).map(r => r.split(",")); }
@@ -109,7 +109,8 @@ canvas{width:100%;height:240px}
     try {
       const res = await fetch('passwords.json?cache=' + Date.now());
       const map = await res.json();
-      const expected = (map[TAB] || '').trim();
+      // Case-insensitive lookup (fix for tabs like DEMO vs Demo)
+      const expected = (map[TAB] || map[TAB.toLowerCase()] || map[TAB.toUpperCase()] || '').trim();
       if (expected && input === expected) {
         document.getElementById('login').style.display = 'none';
         document.getElementById('content').style.display = 'block';
@@ -131,9 +132,13 @@ canvas{width:100%;height:240px}
   }
 
   async function loadData() {
-    const url = SHEET_URL + '&t=' + Date.now();
-    const res = await fetch(url);
+    const res = await fetch(SHEET_URL);
     const text = await res.text();
+    // Basic check: if response starts with '<!DOCTYPE', we fetched an HTML error
+    if (/^\s*<!DOCTYPE/i.test(text)) {
+      document.getElementById('rows').innerHTML = '<tr><td>Could not load CSV. Is the sheet published to web and the tab named exactly: ' + TAB + ' ?</td></tr>';
+      return;
+    }
     const rows = parseCSV(text);
     if(!rows.length) return;
     const headers = rows[0].map(stripQ);
