@@ -1,4 +1,5 @@
-<!doctype html><html lang='en'><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'><title>TK – Results</title><style>
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>TK – Results</title><style>
 :root{
   --bg:#e8fbef;
   --card:#ffffff;
@@ -36,27 +37,71 @@ canvas{width:100%;height:240px}
 .btn{display:inline-flex;align-items:center;gap:8px;background:var(--accent);color:#fff;border:none;border-radius:10px;padding:10px 14px;font-weight:700;cursor:pointer;box-shadow:var(--shadow)}
 .input{padding:10px 12px;border-radius:10px;border:1px solid var(--table-grid);width:220px;margin-right:8px}
 .summary{background:var(--accent-weak);border:1px solid var(--table-grid);padding:14px;border-radius:12px}
-</style><script src='https://cdn.jsdelivr.net/npm/chart.js'></script></head><body><div class='container'><div class='header'><a href='index.html' class='backlink'>← Back to class</a><div class='brand'><div class='logo'>📈</div>TK's Progress</div></div><div id='login' class='card login'><h3 style='margin-top:0;'>Enter your password</h3><input type='password' id='pw' class='input' placeholder='Password'><button class='btn' onclick='checkPassword()'>Unlock</button><div id='err' class='subtle' style='color:#b91c1c;margin-top:8px;'></div></div><div id='content' style='display:none;'><div class='card'><h2 style='margin:0;'>Overview</h2><p class='subtle' style='margin-top:6px;'>Live from Google Sheets tab: <strong>TK</strong></p><div id='summaryCard' class='summary' style='margin-top:12px; display:none;'><strong>AI Summary:</strong><div id='summaryText' style='margin-top:6px;'></div></div></div><div class='kicker'>All Results (table)</div><div class='card'><table class='table'><thead><tr id='headers'></tr></thead><tbody id='rows'></tbody></table></div><div class='kicker'>Progress Charts</div><div id='charts' class='charts'></div></div></div>
+</style><script src="https://cdn.jsdelivr.net/npm/chart.js"></script></head>
+<body><div class="container">
+  <div class="header"><a href="index.html" class="backlink">← Back to class</a>
+    <div class="brand"><div class="logo">📈</div>TK's Progress</div>
+  </div>
+
+  <div id="login" class="card login">
+    <h3 style="margin-top:0;">Enter your password</h3>
+    <input type="password" id="pw" class="input" placeholder="Password">
+    <button class="btn" onclick="checkPassword()">Unlock</button>
+    <div id="err" class="subtle" style="color:#b91c1c;margin-top:8px;"></div>
+  </div>
+
+  <div id="content" style="display:none;">
+    <div class="card">
+      <h2 style="margin:0;">Overview</h2>
+      <p class="subtle" style="margin-top:6px;">Live from Google Sheets tab: <strong>TK</strong></p>
+      <div id="summaryCard" class="summary" style="margin-top:12px; display:none;">
+        <strong>AI Summary:</strong><div id="summaryText" style="margin-top:6px;"></div>
+      </div>
+    </div>
+
+    <div class="kicker">All Results (table)</div>
+    <div class="card"><table class="table">
+      <thead><tr id="headers"></tr></thead><tbody id="rows"></tbody>
+    </table></div>
+
+    <div class="kicker">Progress Charts</div>
+    <div id="charts" class="charts"></div>
+  </div>
+</div>
+
 <script>
 const PUBHTML_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vTCUTXjOdP3XSxBsd0JLbK1PMEodb4Kjd4bOY-MV5F7IF8nFm3N8_ciaS8vcuRVLlw5_PBQwpxChb3Q/pubhtml";
 const PUBCSV_BASE = "https://docs.google.com/spreadsheets/d/e/2PACX-1vTCUTXjOdP3XSxBsd0JLbK1PMEodb4Kjd4bOY-MV5F7IF8nFm3N8_ciaS8vcuRVLlw5_PBQwpxChb3Q/pub";
 const TAB = "TK";
 
-function reEscape(s){ return s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'); }
+function reEscape(s){ return (s||"").replace(/[.*+?^${}()|[\]\\]/g, '\\$&'); }
+function stripQ(s){ return (s||"").replace(/^\\"|\\"$/g,"").replace(/^\"|\"$/g,"").replace(/^"|"$/g,"").trim(); }
+function parseCSV(text){ return text.trim().split(/\r?\n/).map(r => r.split(",")); }
+function hexToRgba(hex, a){ const h=hex.replace('#',''); const r=parseInt(h.slice(0,2),16), g=parseInt(h.slice(2,4),16), b=parseInt(h.slice(4,6),16); return `rgba(${r}, ${g}, ${b}, ${a})`; }
+function getAccent(){ return getComputedStyle(document.documentElement).getPropertyValue('--accent').trim() || '#2563eb'; }
 
-async function resolveGidByName(tabName){
+async function resolveGidFromMapOrHtml(tabName){
+  // 1) Try gidmap.json first
+  try{
+    const gmRes = await fetch('gidmap.json?cache=' + Date.now());
+    const gidmap = await gmRes.json();
+    const direct = gidmap[tabName] || gidmap[tabName.toLowerCase()] || gidmap[tabName.toUpperCase()];
+    if (direct && String(direct).trim() !== "") return String(direct).trim();
+  }catch(e){ /* ignore if missing */ }
+
+  // 2) Fallback: scrape pubhtml for gid (more tolerant: match text OR title attr, normalize spaces)
   const res = await fetch(PUBHTML_URL + "?t=" + Date.now());
-  const html = await res.text();
+  const html = (await res.text()).replace(/&nbsp;/g,' ');
   let rx = new RegExp("gid=(\\d+)[^>]*>\\s*" + reEscape(tabName.trim()) + "\\s*<", "i");
   let m = html.match(rx);
   if (m && m[1]) return m[1];
   rx = new RegExp("gid=(\\d+)[^>]*title=[\"'][^\"']*" + reEscape(tabName.trim()) + "[^\"']*[\"'][^>]*>", "i");
   m = html.match(rx);
   if (m && m[1]) return m[1];
-  throw new Error("Could not find gid for tab: " + tabName + ". Check the tab name exactly.");
+  throw new Error("Could not find gid for tab: " + tabName + ". Check exact tab name.");
 }
 
-async function checkPassword() {
+async function checkPassword(){
   const input = document.getElementById('pw').value.trim();
   try {
     const res = await fetch('passwords.json?cache=' + Date.now());
@@ -74,30 +119,14 @@ async function checkPassword() {
   }
 }
 
-function parseCSV(text){ return text.trim().split(/\r?\n/).map(r => r.split(",")); }
-const stripQ = s => (s||"").replace(/^\"|\"$/g,"").replace(/^"|"$/g,"").trim();
-
-function hexToRgba(hex, alpha) {
-  const h = hex.replace('#','');
-  const r = parseInt(h.substring(0,2),16);
-  const g = parseInt(h.substring(2,4),16);
-  const b = parseInt(h.substring(4,6),16);
-  return 'rgba(' + r + ', ' + g + ', ' + b + ', ' + alpha + ')';
-}
-function getAccent() {
-  const s = getComputedStyle(document.documentElement).getPropertyValue('--accent').trim();
-  return s || '#2563eb';
-}
-
 async function loadData(){
-  try {
-    const gid = await resolveGidByName(TAB);
+  try{
+    const gid = await resolveGidFromMapOrHtml(TAB);
     const url = `${PUBCSV_BASE}?output=csv&single=true&gid=${gid}&t=${Date.now()}`;
     const res = await fetch(url);
     const text = await res.text();
     if (/^\s*<!DOCTYPE/i.test(text)) {
-      document.getElementById('rows').innerHTML =
-        '<tr><td>Could not load CSV for tab "' + TAB + '". Ensure the doc is published (Entire document) and tab exists.</td></tr>';
+      document.getElementById('rows').innerHTML = '<tr><td>Could not load CSV for tab "' + TAB + '". Ensure the doc is published (Entire document) and tab exists.</td></tr>';
       return;
     }
     const rows = parseCSV(text);
@@ -105,19 +134,19 @@ async function loadData(){
 
     const headers = rows[0].map(stripQ);
     const headerRow = document.getElementById('headers'); headerRow.innerHTML = "";
-    headers.forEach(function(h){ var th=document.createElement('th'); th.textContent=h||'Metric / Date'; headerRow.appendChild(th); });
+    headers.forEach(h => { const th=document.createElement('th'); th.textContent=h||'Metric / Date'; headerRow.appendChild(th); });
 
     const tbody = document.getElementById('rows'); tbody.innerHTML = "";
     let summaryText = '';
-    rows.slice(1).forEach(function(row){
-      if(row.every(function(c){ return stripQ(c)===''; })) return;
+    rows.slice(1).forEach(row => {
+      if(row.every(c => stripQ(c)==='')) return;
       const first = stripQ(row[0]);
       if (first.toLowerCase() === 'summary' || first.toLowerCase() === 'ai summary') {
         for (let i=row.length-1; i>=1; i--){ const v = stripQ(row[i]); if (v){ summaryText = v; break; } }
         return;
       }
       const tr=document.createElement('tr');
-      row.forEach(function(cell){ var td=document.createElement('td'); td.textContent=stripQ(cell); tr.appendChild(td); });
+      row.forEach(cell => { const td=document.createElement('td'); td.textContent=stripQ(cell); tr.appendChild(td); });
       tbody.appendChild(tr);
     });
 
@@ -128,12 +157,10 @@ async function loadData(){
 
     const dates = headers.slice(1);
     const chartsDiv = document.getElementById('charts'); chartsDiv.innerHTML = "";
-    const accent = getAccent();
-    const fill = hexToRgba(accent, 0.18);
-
-    rows.slice(1).forEach(function(row){
-      const metric = stripQ(row[0]); if(!metric || metric.toLowerCase().indexOf('summary')!==-1) return;
-      const values = row.slice(1).map(function(v){ var n=parseFloat(stripQ(v)); return isNaN(n)? null : n; });
+    const accent = getAccent(); const fill = hexToRgba(accent, 0.18);
+    rows.slice(1).forEach(row => {
+      const metric = stripQ(row[0]); if(!metric || metric.toLowerCase().includes('summary')) return;
+      const values = row.slice(1).map(v => { const n=parseFloat(stripQ(v)); return isNaN(n)? null : n; });
       const card=document.createElement('div'); card.className='card';
       const h=document.createElement('h3'); h.textContent=metric; card.appendChild(h);
       const canvas=document.createElement('canvas'); card.appendChild(canvas);
@@ -142,11 +169,10 @@ async function loadData(){
         type:'line',
         data:{ labels:dates, datasets:[{ label:metric, data:values, borderColor: accent, backgroundColor: fill, fill:true, tension:.35 }] },
         options:{ responsive:true, plugins:{legend:{display:false}},
-          scales:{ x:{ grid:{ color: hexToRgba(accent, 0.09) } }, y:{ beginAtZero:true, grid:{ color: hexToRgba(accent, 0.09) } } }
-        }
+          scales:{ x:{ grid:{ color: hexToRgba(accent, 0.09) } }, y:{ beginAtZero:true, grid:{ color: hexToRgba(accent, 0.09) } } } }
       });
     });
-  } catch(err) {
+  }catch(err){
     document.getElementById('rows').innerHTML = '<tr><td>' + err.message + '</td></tr>';
   }
 }
